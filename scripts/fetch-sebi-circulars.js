@@ -1,3 +1,6 @@
+import WebSocket from "ws";
+global.WebSocket = WebSocket;
+
 import Parser from "rss-parser";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
@@ -8,7 +11,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env file");
+  console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
   process.exit(1);
 }
 
@@ -22,9 +25,7 @@ const parser = new Parser({
 function getPublishedDate(item) {
   const rawDate = item.isoDate || item.pubDate;
 
-  if (!rawDate) {
-    return new Date().toISOString().split("T")[0];
-  }
+  if (!rawDate) return new Date().toISOString().split("T")[0];
 
   const parsedDate = new Date(rawDate);
 
@@ -36,25 +37,24 @@ function getPublishedDate(item) {
 }
 
 function isValidCircularItem(item) {
-  if (!item) return false;
-
-  const title = item.title || "";
-  const link = item.link || "";
+  const title = item?.title || "";
+  const link = item?.link || "";
 
   if (!title || !link) return false;
 
   return (
     link.includes("sebi.gov.in") &&
-    (
-      link.includes("/legal/circulars/") ||
-      title.toLowerCase().includes("circular")
-    )
+    (link.includes("/legal/circulars/") ||
+      title.toLowerCase().includes("circular"))
   );
 }
 
 function buildCircular(item) {
   const title = item.title || "SEBI Circular";
   const sourceUrl = item.link || "";
+  const summaryText =
+    item.contentSnippet ||
+    "This SEBI circular has been automatically fetched from the official SEBI feed.";
 
   return {
     regulator: "SEBI",
@@ -67,8 +67,7 @@ function buildCircular(item) {
     deadline: "To be reviewed",
     impact_level: "Medium",
     impacted_entities: ["Stock Brokers", "Investors", "Market Intermediaries"],
-    summary:
-      "This SEBI circular has been automatically fetched from the official SEBI feed. The detailed compliance impact should be reviewed by the compliance team.",
+    summary: summaryText,
     business_impact:
       "Capital market intermediaries should review this circular for possible impact on reporting, operations, investor communication, system changes, risk controls or compliance monitoring.",
     action_required:
@@ -79,7 +78,7 @@ function buildCircular(item) {
       "Identify impacted business processes",
       "Assign compliance owner",
       "Update SOP or system logic if required",
-      "Track closure evidence"
+      "Track closure evidence",
     ],
     source_url: sourceUrl,
     pdf_url: sourceUrl,
@@ -104,7 +103,6 @@ async function fetchSebiCirculars() {
     console.log("Fetching SEBI circulars...");
 
     const feed = await parser.parseURL("https://www.sebi.gov.in/sebirss.xml");
-
     const items = Array.isArray(feed.items) ? feed.items : [];
 
     console.log(`RSS items received: ${items.length}`);
@@ -133,7 +131,7 @@ async function fetchSebiCirculars() {
 
     console.log(`Inserted/updated ${circulars.length} SEBI circulars successfully.`);
   } catch (error) {
-    console.error("SEBI fetch failed:", error.message);
+    console.error("SEBI fetch failed:", error);
     process.exit(1);
   }
 }
