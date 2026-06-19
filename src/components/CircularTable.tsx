@@ -26,7 +26,13 @@ type Circular = {
   non_compliance_risk: string;
 };
 
-export default function CircularTable() {
+export default function CircularTable({
+  activeMenu,
+  quickFilter,
+}: {
+  activeMenu: string;
+  quickFilter: string;
+}) {
   const [circulars, setCirculars] = useState<Circular[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCircular, setSelectedCircular] = useState<Circular | null>(null);
@@ -94,9 +100,27 @@ export default function CircularTable() {
 
   const filteredCirculars = circulars
     .filter((item) => {
-      const yearMatch = selectedYear === "All" || getYear(item.published_date) === selectedYear;
-      const monthMatch = selectedMonth === "All" || getMonth(item.published_date) === selectedMonth;
-      return yearMatch && monthMatch;
+      const yearMatch =
+        selectedYear === "All" || getYear(item.published_date) === selectedYear;
+
+      const monthMatch =
+        selectedMonth === "All" || getMonth(item.published_date) === selectedMonth;
+
+      const menuMatch =
+        activeMenu === "Dashboard" ||
+        activeMenu === "Industries" ||
+        (activeMenu === "RBI Circulars" && item.regulator === "RBI") ||
+        (activeMenu === "SEBI Circulars" && item.regulator === "SEBI") ||
+        (activeMenu === "NPCI Circulars" && item.regulator === "NPCI") ||
+        (activeMenu === "Impact Tracker" &&
+          ["Critical", "High"].includes(item.impact_level));
+
+      const quickMatch =
+        quickFilter === "All" ||
+        item.industry === quickFilter ||
+        item.impact_level === quickFilter;
+
+      return yearMatch && monthMatch && menuMatch && quickMatch;
     })
     .sort((a, b) => {
       if (sortBy === "newest") {
@@ -132,7 +156,7 @@ export default function CircularTable() {
       <div style={cardStyle}>
         <div style={topBarStyle}>
           <div>
-            <h2 style={headingStyle}>Latest Circulars</h2>
+            <h2 style={headingStyle}>{activeMenu}</h2>
             <p style={subTextStyle}>
               Showing {filteredCirculars.length} of {circulars.length} circulars
             </p>
