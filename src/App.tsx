@@ -1,6 +1,19 @@
+import { useState } from "react";
 import CircularTable from "./components/CircularTable";
 
 function App() {
+  const [activeMenu, setActiveMenu] = useState("Dashboard");
+  const [quickFilter, setQuickFilter] = useState("All");
+
+  const menuItems = [
+    "Dashboard",
+    "RBI Circulars",
+    "SEBI Circulars",
+    "NPCI Circulars",
+    "Industries",
+    "Impact Tracker",
+  ];
+
   return (
     <div style={pageStyle}>
       <aside style={sidebarStyle}>
@@ -10,12 +23,18 @@ function App() {
         </div>
 
         <nav style={menuStyle}>
-          <div style={activeMenuStyle}>Dashboard</div>
-          <div style={menuItemStyle}>RBI Circulars</div>
-          <div style={menuItemStyle}>SEBI Circulars</div>
-          <div style={menuItemStyle}>NPCI Circulars</div>
-          <div style={menuItemStyle}>Industries</div>
-          <div style={menuItemStyle}>Impact Tracker</div>
+          {menuItems.map((item) => (
+            <button
+              key={item}
+              style={activeMenu === item ? activeMenuStyle : menuItemStyle}
+              onClick={() => {
+                setActiveMenu(item);
+                setQuickFilter("All");
+              }}
+            >
+              {item}
+            </button>
+          ))}
         </nav>
       </aside>
 
@@ -29,10 +48,7 @@ function App() {
             </p>
 
             <div style={searchBoxStyle}>
-              <input
-                placeholder="Search RBI, SEBI, UPI, KYC, broker..."
-                style={searchInputStyle}
-              />
+              <input placeholder="Search RBI, SEBI, UPI, KYC, broker..." style={searchInputStyle} />
               <button style={searchButtonStyle}>Search</button>
             </div>
           </div>
@@ -57,14 +73,18 @@ function App() {
         </section>
 
         <section style={filterBarStyle}>
-          <button style={activeFilterStyle}>All</button>
-          <button style={filterButtonStyle}>Banking</button>
-          <button style={filterButtonStyle}>Payments</button>
-          <button style={filterButtonStyle}>Capital Markets</button>
-          <button style={filterButtonStyle}>Critical</button>
+          {["All", "Banking", "Payments", "Capital Markets", "Critical"].map((item) => (
+            <button
+              key={item}
+              style={quickFilter === item ? activeFilterStyle : filterButtonStyle}
+              onClick={() => setQuickFilter(item)}
+            >
+              {item}
+            </button>
+          ))}
         </section>
 
-        <CircularTable />
+        <CircularTable activeMenu={activeMenu} quickFilter={quickFilter} />
       </main>
     </div>
   );
@@ -101,9 +121,7 @@ const sidebarStyle = {
   height: "100vh",
 };
 
-const brandBoxStyle = {
-  marginBottom: "34px",
-};
+const brandBoxStyle = { marginBottom: "34px" };
 
 const brandStyle = {
   fontSize: "24px",
@@ -129,6 +147,11 @@ const menuItemStyle = {
   borderRadius: "12px",
   color: "#cbd5e1",
   fontWeight: 700,
+  background: "transparent",
+  border: "none",
+  textAlign: "left" as const,
+  cursor: "pointer",
+  fontSize: "15px",
 };
 
 const activeMenuStyle = {
@@ -290,6 +313,7 @@ const filterButtonStyle = {
   borderRadius: "999px",
   fontWeight: 800,
   color: "#334155",
+  cursor: "pointer",
 };
 
 const activeFilterStyle = {
