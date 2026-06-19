@@ -25,4 +25,4 @@ jobs:
         run: node scripts/fetch-sebi-circulars.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95aHVoa21wcmduZW91Z2dpZHNlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTgzNjg1OCwiZXhwIjoyMDk3NDEyODU4fQ.FL_mbMS64Rfh8BKK1MLOLweDTTj0Q_fOE9AfPjLXilc }}
