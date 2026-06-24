@@ -1,9 +1,60 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CircularTable from "./components/CircularTable";
+import { supabase } from "./lib/supabase";
+
+type DashboardStats = {
+  totalCirculars: number;
+  regulators: number;
+  highImpact: number;
+  updatedToday: number;
+};
 
 function App() {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const [quickFilter, setQuickFilter] = useState("All");
+
+  const [stats, setStats] = useState<DashboardStats>({
+    totalCirculars: 0,
+    regulators: 0,
+    highImpact: 0,
+    updatedToday: 0,
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  async function fetchStats() {
+    const { data, error } = await supabase
+      .from("circulars")
+      .select("regulator, impact_level, published_date");
+
+    if (error || !data) {
+      console.error("Stats fetch error:", error);
+      return;
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const uniqueRegulators = new Set(
+      data.map((item) => item.regulator).filter(Boolean)
+    );
+
+    const highImpactCount = data.filter(
+      (item) => item.impact_level === "High" || item.impact_level === "Critical"
+    ).length;
+
+    const updatedTodayCount = data.filter(
+      (item) => item.published_date === today
+    ).length;
+
+    setStats({
+      totalCirculars: data.length,
+      regulators: uniqueRegulators.size,
+      highImpact: highImpactCount,
+      updatedToday: updatedTodayCount,
+    });
+  }
 
   const menuItems = [
     "Dashboard",
@@ -66,10 +117,10 @@ function App() {
         </section>
 
         <section style={statsGridStyle}>
-          <StatCard title="Total Circulars" value="3" />
-          <StatCard title="Regulators" value="3" />
-          <StatCard title="High Impact" value="2" />
-          <StatCard title="Updated Today" value="2" />
+          <StatCard title="Total Circulars" value={String(stats.totalCirculars)} />
+          <StatCard title="Regulators" value={String(stats.regulators)} />
+          <StatCard title="High/Critical Impact" value={String(stats.highImpact)} />
+          <StatCard title="Updated Today" value={String(stats.updatedToday)} />
         </section>
 
         <section style={filterBarStyle}>
